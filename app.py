@@ -17,7 +17,7 @@ Secretaría de Energía para predecir la **Presión Máxima de Fractura (PSI)** 
 """)
 st.markdown("---")
 
-# 2. Cargar el modelo guardado
+# 2. Cargar el modelo guardado de forma robusta
 @st.cache_resource
 def cargar_modelo():
     model = xgb.XGBRegressor()
@@ -25,12 +25,17 @@ def cargar_modelo():
     model.load_model('modelo_fracking_xgb.json')
     return model
 
+# Intentamos cargar el modelo y mostramos el error técnico real si falla
 try:
     modelo = cargar_modelo()
     st.sidebar.success("✅ Modelo XGBoost cargado con éxito")
-except Exception as e:
+except FileNotFoundError:
     st.sidebar.error("❌ No se encontró el archivo 'modelo_fracking_xgb.json'")
     st.sidebar.info("Por favor, asegúrate de colocar el archivo del modelo en la misma carpeta que este script.")
+except Exception as e:
+    # Si hay un error de versión o de la librería, nos va a mostrar el texto real del error en la pantalla
+    st.sidebar.error("❌ Error interno al inicializar el modelo")
+    st.sidebar.code(f"{type(e).__name__}: {str(e)}")
 
 # 3. Interfaz de usuario: Controles de entrada de datos en los rangos del EDA
 st.subheader("🔧 Parámetros de Diseño del Pozo")
